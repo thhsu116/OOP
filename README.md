@@ -1,3 +1,3 @@
-# hello-world
+# few words
 
-This is a new thing!
+This repository is to archive practice codes from book "Mastering Object-oriented Python" written by Steven F. Lott.
