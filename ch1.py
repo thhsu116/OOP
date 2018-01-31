@@ -227,3 +227,116 @@ class GameStrategy:
     def hit(self, hand):
         return sum(c.hard for c in hand.cards) <= 17
 
+class Table:
+    def __init__(self):
+        self.deck = Deck()
+    def place_bet(self, amount):
+        print("Bet", amount)
+    def get_hand(self):
+        try:
+            self.hand = Hand2(d.pop(), d.pop(), d.pop())
+            self.hole_card = d.pop()
+        except IndexError:
+            # Out of cards, need to shuffle
+            self.deck = Deck()
+            return self.get_hand()
+        print("Deal", self.hand)
+        return self.hand
+    def can_insure(self, hand):
+        return hand.dealer_card.insure
+
+# an abstract superclass, raise error if bet method is not defined by subclass
+class BettingStrategy:
+    def bet(self):
+        raise NotImplementedError("No bet method")
+    def record_win(self):
+        pass
+    def recoed_loss(self):
+        pass
+# a specific subclass with bet method
+class Flat(BettingStrategy):
+    def bet(self):
+        return 1
+
+# use abc module to formalize an abstract superclass defination
+# make the creation of an instance of BettingStrategy2 or any subclasee
+# that failed to implement bet() impossible
+import abc
+class BettingStrategy2(metaclass=abc.ABCMeta):
+    @abstractmethod
+    def bet(self):
+        return 1
+    def record_win(self):
+        pass
+    def recoed_loss(self):
+        pass
+    
+# create Hand object using complex(multi-strategy) __init__()
+class Hand3:
+    def __init__(self, *args, **kw):
+        if len(args) == 1 and isinstance(atgs[0], Hand3):
+            # clone an existing hand; often a bad idea
+            # Hand3 instance is built from an existing Hand3 object
+            other = args[0]
+            self.dealer_card = other.dealer_card
+            self.cards = other.cards
+        else:
+            # build a fresh, new hand
+            # Hand3 instance is built from individual Card instances
+            dealer_card, *cards = args
+            self.dealer_card = dealer_card
+            self.cards = list(cards)
+d = Deck()
+h = Hand3(d.pop(), d.pop)_, d.pop())
+memento = Hand3(h)
+
+# extend __init__() in Hand3 to split the instance
+class Hand4:
+    def __init__(self, *args, **kw):
+        if len(args) == 1 and isinstance(atgs[0], Hand3):
+            # clone an existing hand; often a bad idea
+            # Hand3 instance is built from an existing Hand3 object
+            other = args[0]
+            self.dealer_card = other.dealer_card
+            self.cards = other.cards
+        elif: len(args) == 2 and isinstance(args[0], Hand3) and 'split' in kw:
+            # split an existing hand
+            other, card = args
+            self.dealer_card = other.dealer_card
+            self.cards = [other.cards[kw['split']], card]
+        elif len(args) == 3:
+            # build a fresh, new hand
+            # Hand3 instance is built from individual Card instances
+            dealer_card, *cards = args
+            self.dealer_card = dealer_card
+            self.cards = list(cards)
+        else:
+            raise TypeError("Invalid constructor args={0!r} kw={1!r}".format(args, kw))
+    def __str__(self):
+        return ", ".join(map(str, self.cards))
+
+d = Deck()
+h = Hand4(d.pop(), d.pop)_, d.pop())
+s1 = Hand4(h, d.pop(), split=0)
+s2 = Hand4(h, d.pop(), split=1)
+
+# use static method instead of complex __init__()
+class Hand5:
+    def __init__(self, dealer_card, *cards):
+        self.dealer_card = dealer_card
+        self.cards = list(cards)
+    # freeze or creates a memento without cloning an existing Hand instance
+    @staticmethod
+    def freeze(other):
+        hand = Hand5(other.dealer_card, *other.cards)
+    @staticmethod
+    def split(other, card0, card1):
+        hand0 = Hand5(other.dealer_card, other.cards[0], card0)
+        hand1 = Hand5(other.dealer_card, other.cards[1], card1)
+        return hand0, hand1
+    def __str__(self):
+        return ", ".join(map(str, self.cards))
+
+d = Deck()
+h = Hand5(d.pop(), d.pop(), d.pop())
+s1, s2 = Hand5.split(h, d.pop(), d.pop())
