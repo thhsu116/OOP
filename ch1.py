@@ -321,6 +321,7 @@ s1 = Hand4(h, d.pop(), split=0)
 s2 = Hand4(h, d.pop(), split=1)
 
 # use static method instead of complex __init__()
+# A static method does not receive an implicit first argument.
 class Hand5:
     def __init__(self, dealer_card, *cards):
         self.dealer_card = dealer_card
@@ -340,3 +341,75 @@ class Hand5:
 d = Deck()
 h = Hand5(d.pop(), d.pop(), d.pop())
 s1, s2 = Hand5.split(h, d.pop(), d.pop())
+
+
+# a Player class with a bookkeeping __init__()
+class Player:
+    def __init__(self, table, bet_strategy, game_strategy):
+        self.bet_strategy = bet_strategy
+        self.game_strategy = game_strategy
+        self.table = table
+    def game(self):
+        self.table.place_bet(self.bet_strategy.bet())
+        self.hand = self.table.get_hand()
+        if self.table.can_insure(self.hand):
+            if self.game_strategy.insurance(self.hand):
+                self.table.insure(self.bet_strategy.bet())
+        # Yet more...
+table = Table()
+flat_bet = Flat()
+dumb = GameStrategy()
+p = Player(table, flat_bet, dumb)
+p.game()
+
+# use keyword argument in __init__(), more open to extension comparing with position argument
+# better to read the class implementation 
+class Player2:
+    def __init__(self, **kw):
+        """Must provide table, bet_strategy, game_strategy"""
+        self.__dict__.update(kw)
+    def game(self):
+        self.table.place_bet(self.bet_strategy.bet())
+        self.hand = self.table.get_hand()
+        if self.table.can_insure(self.hand):
+            if self.game_strategy.insurance(self.hand):
+                self.table.insure(self.bet_strategy.bet())
+        # Yet more...
+p1 = Player2(table=table, bet_strategy=falt_bet, game_strategy=dumb)
+p2 = Player2(table=table, bet_strategy=falt_bet, game_strategy=dumb, log_name="Flat/Dumb")
+
+# a hybrid implementation
+class Player3:
+    def __init__(self, table, bet_strategy, game_strategy, **extras):
+        self.bet_strategy = bet_strategy
+        self.game_strategy = game_strategy
+        self.table = tabl
+        self.__dict__.update(extras)
+
+# initialization with type validation
+class ValidPlayer:
+    def __init__(self, table, bet_strategy, game_strategy):
+        assert isinstance(table, Table)
+        assert isinstance(bet_strategy, BettingStrategy)
+        assert isinstance(game_strategy, GameStrategy)
+        self.bet_strategy = bet_strategy
+        self.game_strategy = game_strategy
+        self.table = table
+'''
+validation of a relative narrow collection of types can restric
+potential use cases, as a new type may still work
+=> instead of type validation, provide documentation, logigng and
+test cases
+'''
+class Player:
+    def __init__(self, table, bet_strategy, game_strategy):
+        """Creates a new player associated with a table,
+          and configured with proper betting and play strategies
+
+        :param table: an instance of :class: 'Table'
+        :param bet_strategy: an instance of :class: 'BettingStrategy'
+        :param game_strategy: an instace of :class: 'GameStrategy'
+        """
+        self.bet_strategy = bet_strategy
+        self.game_strategy = game_strategy
+        self.table = table
